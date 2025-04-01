@@ -1,0 +1,18 @@
+# Core Requirements
+streamlit==1.22.0
+tensorflow  # Lighter version for deployment
+pillow==9.3.0
+numpy==1.23.5
+
+# Google Drive Integration
+gdown==4.6.0
+requests==2.28.0
+
+# Optional Utilities (recommended for better performance)
+protobuf==3.20.3  # Required by TensorFlow
+pyopenssl==22.1.0  # For secure connections
+cachetools==5.2.0  # For better caching
+tqdm==4.64.1  # Progress bars for downloads
+
+# File Handling
+python-dotenv==0.21.0  # For environment variables (optional)
