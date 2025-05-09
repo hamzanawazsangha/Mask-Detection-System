@@ -1,6 +1,13 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TensorFlow warnings
 
+# Page config MUST be first Streamlit command
+import streamlit as st
+st.set_page_config(
+    page_title="Smart Mask Detector",
+    page_icon="😷",
+    layout="wide"
+)
 import streamlit as st
 from PIL import Image
 import numpy as np
