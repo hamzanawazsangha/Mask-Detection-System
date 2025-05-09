@@ -1,27 +1,31 @@
+# 1. First line - environment variables
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TensorFlow warnings
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-# Page config MUST be first Streamlit command
+# 2. Streamlit import and page config - MUST BE FIRST STREAMLIT COMMAND
 import streamlit as st
 st.set_page_config(
     page_title="Smart Mask Detector",
     page_icon="😷",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
-import streamlit as st
+
+# 3. Other imports
 from PIL import Image
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras.layers import InputLayer
 from tensorflow.keras.models import load_model
 import cv2
 import mediapipe as mp
 from huggingface_hub import hf_hub_download
 
-# Initialize MediaPipe
+# 4. MediaPipe initialization
 mp_face_detection = mp.solutions.face_detection
 mp_drawing = mp.solutions.drawing_utils
 
-# Custom CSS for UI
+# 5. Custom CSS
 st.markdown("""
 <style>
     .header {
@@ -72,7 +76,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Model loading with error handling
+# 6. Model loading with explicit InputLayer
 @st.cache_resource
 def load_mask_model():
     try:
@@ -82,14 +86,15 @@ def load_mask_model():
             filename="mask_detection_model.h5",
             cache_dir="models"
         )
-        custom_objects = {"InputLayer": tf.keras.layers.InputLayer}
-        model = load_model(model_path, custom_objects=custom_objects)
+        # Explicitly handle InputLayer
+        model = load_model(model_path, custom_objects={'InputLayer': InputLayer})
         model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
         return model
     except Exception as e:
         st.error(f"Model loading failed: {str(e)}")
         return None
 
+# 7. Face detection function
 def detect_faces(image_np):
     with mp_face_detection.FaceDetection(
         model_selection=1, min_detection_confidence=0.5) as face_detection:
@@ -114,19 +119,15 @@ def detect_faces(image_np):
         
         return faces, cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
 
+# 8. Image preprocessing
 def preprocess_face(face_img):
     face_img = Image.fromarray(face_img).resize((256, 256))
     img_array = tf.keras.preprocessing.image.img_to_array(face_img)
     img_array = np.expand_dims(img_array, axis=0) / 255.0
     return img_array
 
+# 9. Main application function
 def main():
-    st.set_page_config(
-        page_title="Smart Mask Detector",
-        page_icon="😷",
-        layout="wide"
-    )
-    
     st.markdown('<p class="header">😷 Smart Mask Detection System</p>', unsafe_allow_html=True)
     
     model = load_mask_model()
