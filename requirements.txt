@@ -1,8 +1,9 @@
 streamlit==1.32.2
 Pillow==10.1.0
-numpy==1.23.5  # Critical - this version works with TensorFlow 2.12
-tensorflow==2.12.0
-opencv-python==4.7.0.72
+numpy==1.23.5  # Must be exactly this version
+tensorflow-cpu==2.12.0  # Using CPU-only version for wider compatibility
+opencv-python-headless==4.7.0.72  # Headless version avoids GUI dependencies
 mediapipe==0.10.0
 huggingface-hub==0.16.4
-protobuf==3.20.3  # Required for MediaPipe compatibility
+protobuf==3.20.3  # Explicit version to prevent conflicts
+typing-extensions==4.5.0  # Specific version for compatibility
