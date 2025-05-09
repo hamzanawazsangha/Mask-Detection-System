@@ -165,6 +165,9 @@ st.markdown("""
 @st.cache_resource
 def load_model():
     try:
+        # Create models directory if it doesn't exist
+        os.makedirs("models", exist_ok=True)
+        
         # Download model from Hugging Face Hub
         model_path = hf_hub_download(
             repo_id="HamzaNawaz17/Mask_Detection_system",
@@ -175,42 +178,43 @@ def load_model():
         # Load the TensorFlow model
         model = tf.keras.models.load_model(model_path)
         model.make_predict_function()  # Optimize for inference
-        st.success("Model loaded successfully from Hugging Face Hub!")
         return model
     except Exception as e:
         st.error(f"Failed to load model: {str(e)}")
         return None
 
-model = load_model()
-
 # Function to detect faces using MediaPipe
-def detect_faces(image_np):
-    with mp_face_detection.FaceDetection(
-        model_selection=1, min_detection_confidence=0.5) as face_detection:
-        
-        # Convert BGR to RGB
-        image_rgb = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
-        results = face_detection.process(image_rgb)
-        
-        faces = []
-        if results.detections:
-            for detection in results.detections:
-                # Get face bounding box
-                ih, iw, _ = image_np.shape
-                bboxC = detection.location_data.relative_bounding_box
-                bbox = (
-                    int(bboxC.xmin * iw),
-                    int(bboxC.ymin * ih),
-                    int(bboxC.width * iw),
-                    int(bboxC.height * ih)
-                )
-                
-                # Extract face ROI
-                x, y, w, h = bbox
-                face = image_np[y:y+h, x:x+w]
-                faces.append((face, bbox))
-        
-        return faces, image_rgb
+@st.cache_resource
+def init_face_detection():
+    return mp_face_detection.FaceDetection(
+        model_selection=1,
+        min_detection_confidence=0.5
+    )
+
+def detect_faces(image_np, face_detection):
+    # Convert BGR to RGB
+    image_rgb = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+    results = face_detection.process(image_rgb)
+    
+    faces = []
+    if results.detections:
+        for detection in results.detections:
+            # Get face bounding box
+            ih, iw, _ = image_np.shape
+            bboxC = detection.location_data.relative_bounding_box
+            bbox = (
+                int(bboxC.xmin * iw),
+                int(bboxC.ymin * ih),
+                int(bboxC.width * iw),
+                int(bboxC.height * ih)
+            )
+            
+            # Extract face ROI
+            x, y, w, h = bbox
+            face = image_np[y:y+h, x:x+w]
+            faces.append((face, bbox))
+    
+    return faces, image_rgb
 
 # Function to preprocess face image for mask prediction
 def preprocess_face(face_img):
@@ -230,6 +234,10 @@ def save_feedback(name, email, comment):
 def main():
     st.markdown('<p class="header">😷 Smart Mask Detection System</p>', unsafe_allow_html=True)
     st.markdown('<p class="subheader">Upload an image to detect faces and check for mask compliance</p>', unsafe_allow_html=True)
+    
+    # Initialize models
+    face_detection = init_face_detection()
+    model = load_model()
     
     # Create tabs for different functionalities
     tab1, tab2, tab3 = st.tabs(["Mask Detection", "How It Works", "Feedback"])
@@ -257,7 +265,7 @@ def main():
                 image_np = np.array(Image.open(uploaded_file))
                 
                 # Detect faces
-                faces, annotated_image = detect_faces(image_np)
+                faces, annotated_image = detect_faces(image_np, face_detection)
                 
                 if not faces:
                     st.warning("No faces detected in the image. Please try another image with clear faces.")
