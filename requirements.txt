@@ -1,7 +1,8 @@
-streamlit>=1.32.0
-Pillow>=10.0.0
-numpy>=1.24.0
-tensorflow>=2.12.0
-opencv-python>=4.7.0
-mediapipe>=0.10.0
-huggingface-hub>=0.16.0
+streamlit==1.32.2
+Pillow==10.1.0
+numpy==1.23.5  # Critical - this version works with TensorFlow 2.12
+tensorflow==2.12.0
+opencv-python==4.7.0.72
+mediapipe==0.10.0
+huggingface-hub==0.16.4
+protobuf==3.20.3  # Required for MediaPipe compatibility
